@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            display: flex;
+            justify-content:center;
+            align-items: center;
+            width:100vw;
+            height:100vh;
+        }
+        form{
+            width:300px;
+            height:300px;
+            padding:2rem;
+            border:1px solid black
+        }
+        .input-div{
+            width:100%;
+            margin:2rem;
+        }
+    </style>
+</head>
+<body>
+        <center> <h1> Login Form </h1> </center>   
+        <form action="/login" method="post">
+            <div class="input-div">
+                <label for="email">Email : </label>  
+            <input type="text" placeholder="Enter Email" name="email" required> 
+            </div>
+            <div class="input-div">
+                <label for="password">Password : </label>   
+                <input type="password" placeholder="Enter Password" name="password" required> 
+            </div>
+            <button type="submit">login</button>  
+        </form>
+</body>
+</html>
