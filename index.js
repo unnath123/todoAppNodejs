@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const session = require("express-session");
 const { isAuth } = require("./middlewares/AuthMiddlearw");
 const mongoDBsession = require("connect-mongodb-session")(session)
+const todoModel = require("./Models/todoModel")
 
 //all variables
 const app = express();
@@ -38,7 +39,7 @@ app.get("/register", (req,res)=>{
 });
 
 app.post("/register",async (req, res)=>{
-    console.log(req.body);
+    // console.log(req.body);
 
     const {name, email,username, password} = req.body;
 
@@ -109,6 +110,7 @@ app.post("/login", async(req, res)=>{
 
     try{
         const userDB = await userModel.findOne({email})
+        // console.log("userDB this is",userDB)
         if(!userDB){
             return res.send({status:400, message:"user not found"})
         }
@@ -121,7 +123,7 @@ app.post("/login", async(req, res)=>{
         req.session.user = {
             userId: userDB._id,
             email: userDB.email,
-            username: userDB.username,
+            username: userDB.name,
           };
         return res.redirect("/dashboard")
     }
@@ -135,12 +137,69 @@ app.get("/dashboard", isAuth, (req, res)=>{
     return res.render("dashboard");
 })
 
+app.post("/logout", (req, res)=>{
+    req.session.destroy((error)=>{
+        if(error){
+            return res.send({status:500, message:"internal server error"})
+        }
+        else{
+            return res.redirect("/login")
+        }
+    })
+})
 
+app.post("/logout_from_all_devices", isAuth, async(req, res)=>{
 
+    const username = req.session.user.username
+    console.log(req.session.user.username)
+    const sessionSchema = new mongoose.Schema({ _id: String }, { strict: false });
+    const sessionModel = mongoose.model("session", sessionSchema)
 
+    try{
+        const deleteDb = await sessionModel.deleteMany({"session.user.username": username})
+        //console.log(deleteDb)
+        return res.redirect("/login")
+    }
+    catch(error){
+        return res.send({
+            status:500,
+            message:"internal server error"
+        })
+    }
+})
 
+app.post("/create-todo",isAuth, async(req, res)=>{
+    const {todo, name} = req.body;
 
+    const todoObj = new todoModel({
+        todo:todo,
+        name:name,
+    })
 
+    try{
+        const todoDB = await todoObj.save();
+        // console.log(todoDB)
+        return res.send("todo created")
+    }
+    catch(error){
+        return res.send({
+            status:400,
+            message:"something went wrong",
+            error:error
+        })
+    }
+    // return res.send(req.body)
+})
+
+app.get("/get-todo",isAuth, async (req, res)=>{
+   
+    const name = req.session.user.username;
+
+    const todosDB = await todoModel.find({name})
+    console.log(todosDB)
+    return res.send(todosDB)
+   
+})
 
 
 
