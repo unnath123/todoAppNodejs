@@ -198,11 +198,42 @@ app.get("/get-todo",isAuth, async (req, res)=>{
     const todosDB = await todoModel.find({name})
     console.log(todosDB)
     return res.send(todosDB)
-   
 })
 
+app.put("/edit-todo", async(req, res)=>{
+    const {id, newtodo} = req.body;
 
+    try{
+        const edittodo = await todoModel.findOneAndUpdate({_id:id}, {todo:newtodo})
+        console.log(edittodo)
+        if(edittodo.name !== req.session.user.userame){
+            console.log("name is correct")
+        }else{
+            console.log("incorrect user updated")
+        }
+        return res.send("todo updated");
+    }
+    catch(error){
+        return res.send("couldnt update try again")
+    }
+    
+})
 
+app.delete("/delete-todo", async(req, res)=>{
+    const id = req.body.id;
+    try{
+        const deleteTodo = await todoModel.findOneAndDelete({_id:id})
+        console.log(deleteTodo);
+        return res.send({"id":id, message:"todo successfully deleted"});
+    }
+    catch(error){
+        return res.send({
+            status:500,
+            message:"couldnt delete todo"
+        })
+    }
+    
+})
 
 
 app.listen("8000", ()=>{
