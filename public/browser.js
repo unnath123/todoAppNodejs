@@ -24,6 +24,23 @@ function renderTodos(arr){
     })
 }
 
+function add(){
+    const todo = document.getElementById("create_field").value;
+    axios.post("/create-todo", {todo})
+    .then((res)=>{
+        console.log("todo created",res)
+        const container = document.getElementById("item_list")
+        const todos = document.createElement("div") 
+        todos.id = res.data.data._id
+        todos.innerHTML = `
+       <div class="todo-container m-2 d-flex justify-content-between p-2"><li >${res.data.data.todo}</li>
+        <div><button onclick="handleEdit('${res.data.data._id}')" id="edit_todo">edit</button> <button id="delete_todo" onclick="handleDelete('${res.data.data._id}')">delete</button></div></div>
+       `
+       container.appendChild(todos)
+    })
+    .catch(err=>console.log("error", err.message))
+}
+
 function handleEdit(ide){
     const newTodo = prompt("please type the new todo");
     const reqBody = {
@@ -34,14 +51,17 @@ function handleEdit(ide){
     axios.put("/edit-todo", reqBody)
     .then((res)=>{
         console.log("todoedited")
-        document.getElementById(ide).innerText = newTodo;
+        var element = document.getElementById(ide);
+        var liElement = element.querySelector('li'); // Select the first <li> tag within the element
+        liElement.innerText = newTodo;
+       // document.getElementById(ide).innerText =newTodo ;
     })
     .catch(err=>console.log("error updating todo"))
 
     
 }
 
-function handleDelete(ide){
+function handleDelete(ide,e){
     console.log("delete triggered")
     const requestBody = {
         id:ide

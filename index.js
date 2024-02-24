@@ -199,7 +199,7 @@ app.post("/create-todo",isAuth, async(req, res)=>{
     try{
         const todoDB = await todoObj.save();
         // console.log(todoDB)
-        return res.status(200).json({ message: "Todo created successfully" });
+       res.status(200).json({ message: "Todo created successfully",data:todoDB });
     }
     catch(error){
         return res.send({
