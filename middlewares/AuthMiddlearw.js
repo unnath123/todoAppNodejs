@@ -4,7 +4,6 @@ const isAuth = (req, res, next) =>{
     }
     else{
         return res.status(401).json("Session expired, please login again");
-    }
-        
+    } 
 }
 module.exports = {isAuth}

@@ -3,12 +3,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const userModel = require("./Models/userModel");
-const { validateUser } = require("./Utils/validateUser");
+const { validateUser, generateJWTtoken, sendEmail } = require("./Utils/validateUser");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
 const { isAuth } = require("./middlewares/AuthMiddlearw");
 const mongoDBsession = require("connect-mongodb-session")(session)
-const todoModel = require("./Models/todoModel")
+const todoModel = require("./Models/todoModel");
+const { JsonWebTokenError } = require("jsonwebtoken");
 
 //all variables
 const app = express();
@@ -28,6 +29,7 @@ app.use(session({
     resave:false,
     store:store,
 }))
+app.use(express.static("public"))
 
 //DB connections
 mongoose.connect(mongo_URI)
@@ -40,14 +42,26 @@ app.get("/register", (req,res)=>{
 
 app.post("/register",async (req, res)=>{
     // console.log(req.body);
-
     const {name, email,username, password} = req.body;
+
+    // try {
+    //     const token = await generateJWTtoken(email);
+    //     sendEmail(email, token);
+    //     return res.status(200).send("verify your email");
+    // } catch(error) {
+    //     return res.status(500).send({
+    //         message: error.message, // Use error.message to get the error message
+    //         status: 500
+    //     });
+    // }
+    
+    
 
     try{
         await validateUser({name, email, username, password});
     }
     catch(error){
-        res.send({
+       return res.send({
             status:400,
             message:"user data error"
         })
@@ -95,6 +109,12 @@ app.post("/register",async (req, res)=>{
 
 app.get("/login", (req, res)=>{
     res.render("loginpage")
+})
+
+app.get("/allusers", async(req,res)=>{
+    const userDB = await userModel.find();
+    console.log(userDB)
+    return res.send({result:userDB})
 })
 
 app.post("/login", async(req, res)=>{
@@ -169,17 +189,17 @@ app.post("/logout_from_all_devices", isAuth, async(req, res)=>{
 })
 
 app.post("/create-todo",isAuth, async(req, res)=>{
-    const {todo, name} = req.body;
+    const {todo} = req.body;
 
     const todoObj = new todoModel({
         todo:todo,
-        name:name,
+        name:req.session.user.username,
     })
 
     try{
         const todoDB = await todoObj.save();
         // console.log(todoDB)
-        return res.send("todo created")
+        return res.status(200).json({ message: "Todo created successfully" });
     }
     catch(error){
         return res.send({
@@ -196,7 +216,7 @@ app.get("/get-todo",isAuth, async (req, res)=>{
     const name = req.session.user.username;
 
     const todosDB = await todoModel.find({name})
-    console.log(todosDB)
+    // console.log(todosDB)
     return res.send(todosDB)
 })
 
@@ -219,11 +239,12 @@ app.put("/edit-todo", async(req, res)=>{
     
 })
 
-app.delete("/delete-todo", async(req, res)=>{
+app.post("/delete-todo", async(req, res)=>{
     const id = req.body.id;
+    console.log(id)
     try{
         const deleteTodo = await todoModel.findOneAndDelete({_id:id})
-        console.log(deleteTodo);
+        // console.log(deleteTodo);
         return res.send({"id":id, message:"todo successfully deleted"});
     }
     catch(error){

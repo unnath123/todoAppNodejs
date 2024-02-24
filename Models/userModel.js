@@ -15,7 +15,12 @@ const userSchema = new Schema({
         type:String,
         required:true,
         unique:true,
+    },
+    isEmailtriggered:{
+        type:Boolean,
+        default:false,
     }
+
 })
 
 const userModel = mongoose.model("user", userSchema)
