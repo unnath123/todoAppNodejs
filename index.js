@@ -212,12 +212,30 @@ app.post("/create-todo",isAuth, async(req, res)=>{
 })
 
 app.get("/get-todo",isAuth, async (req, res)=>{
-   
+    const SKIP = Number(req.query.skip) || 0
+    const LIMIT = 5
     const name = req.session.user.username;
+    try{
+        const todos = await todoModel.aggregate([
+            {
+                $match:{name:name}
+            },
+            {
+                $facet:{
+                    data:[{$skip:SKIP},{$limit: LIMIT}]
+                 }
+            }
+        ])
+        return res.send({message: "todo retireved", status:200, todos:todos})
+    }
+    catch(error){
+        return res.send({message:error, status:500})
+    }
+    
 
-    const todosDB = await todoModel.find({name})
-    // console.log(todosDB)
-    return res.send(todosDB)
+    // const todosDB = await todoModel.find({name})
+    // // console.log(todosDB)
+    // return res.send(todosDB)
 })
 
 app.put("/edit-todo", async(req, res)=>{

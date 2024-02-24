@@ -3,10 +3,10 @@
 window.onload = generateTodos();
 
 function generateTodos(){
-    axios.get("/get-todo")
+    axios.get("/get-todo?skip=0")
     .then((res)=>{
-        console.log(res.data);
-        renderTodos(res.data);
+        console.log(res.data.todos);
+        renderTodos(res.data.todos);
     })
     .catch((err)=>console.log(err))
 }
